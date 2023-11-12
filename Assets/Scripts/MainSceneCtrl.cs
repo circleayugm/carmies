@@ -1,9 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class MainSceneCtrl : MonoBehaviour
 {
+    [SerializeField]
+    Text MSG_TIME;
+    [SerializeField]
+    Text[] MSG_MULTIPLIER;
+
 
     ReplayManager REPLAY;
     ObjectManager MANAGE;
@@ -68,6 +74,12 @@ public class MainSceneCtrl : MonoBehaviour
                     if (count == 0)
                     {
                         REPLAY.Reset(0);
+                    }
+                    if (count <= MANAGE.CNT_TIMER)
+                    {
+                        MSG_TIME.text = ((MANAGE.CNT_TIMER - count) / 3600).ToString() + ":" + (((MANAGE.CNT_TIMER - count) / 60) % 60).ToString("D2") + "." + REPLAY.GetMsec((MANAGE.CNT_TIMER - count) % 60).ToString("D2");
+                        MSG_MULTIPLIER[0].text = "x" + MANAGE.SCORE_MULTIPLIER_DISP[MANAGE.CNT_PLAYER_SIDE[0]];
+                        MSG_MULTIPLIER[1].text = "x" + MANAGE.SCORE_MULTIPLIER_DISP[MANAGE.CNT_PLAYER_SIDE[1]];
                     }
                     SetEnemy();
 

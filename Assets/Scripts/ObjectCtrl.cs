@@ -138,30 +138,31 @@ public class ObjectCtrl : MonoBehaviour
 		{
 			// 自機
 			case ObjectManager.TYPE.MYSHIP:
-				if (MAIN.count < 0)	// メインカウンタに同期して動作・マイナスの場合動かない
+				if (MAIN.count < 0) // メインカウンタに同期して動作・マイナスの場合動かない
 				{
 					return;
 				}
 				ReplayInput inp = REPLAY.GetControl(type);  // 入力を受け取る
-				Debug.Log("ObjectCtrl:Update:MAIN.count=" + MAIN.count + " / controller=" + type + " / inp=" + inp.vector + ":" + inp.button);
-				switch (mode)	// 自機の状態に応じて移動・攻撃を行う
+				if (type == 2)
+					Debug.Log("ObjectCtrl:Update:MAIN.count=" + MAIN.count + " / controller=" + type + " / inp=" + inp.vector + ":" + inp.button);
+				switch (mode)   // 自機の状態に応じて移動・攻撃を行う
 				{
 					case 0: // 初期化
 						{
 							obj_mode = ObjectManager.MODE.HIT;
-							MainHit.enabled = false;				// 出現直後無敵
+							MainHit.enabled = false;                // 出現直後無敵
 							MainHit.radius = HITSIZE_MYSHIP;
 							NOHIT = false;
 							MainPic.color = COLOR_NORMAL;
 							MainPic.sortingOrder = 0;
-							MainPic.sprite = MANAGE.SPR_SHIP[0];	// 自機画像
+							MainPic.sprite = MANAGE.SPR_SHIP[0];    // 自機画像
 							GraphPic.enabled = false;
 							PlayerName.text = "Player " + type.ToString();
 							int y = REPLAY.RandomRange(0, 400) - 200;
 							this.transform.localPosition = new Vector3(0, y, 0);
 							angle = 0;
-							param[0] = 0;	// 無敵時間
-							if (REPLAY.RandomRange(0,100)>50)
+							param[0] = 0;   // 無敵時間
+							if (REPLAY.RandomRange(0, 100) > 50)
 							{
 								param[1] = -1;  // 左サイド
 							}
@@ -171,8 +172,8 @@ public class ObjectCtrl : MonoBehaviour
 								this.transform.localScale = new Vector3(-1, 1, 1);
 								PlayerName.transform.localScale = new Vector3(-1, 1, 1);
 							}
-							param[2] = 0;	// サイド変更回数制限
-							param[3] = -1;	// 上下移動スピードアップカウンタ
+							param[2] = 0;   // サイド変更回数制限
+							param[3] = -1;  // 上下移動スピードアップカウンタ
 							mode = 1;
 							power = 1;
 							LIFE = 1;
@@ -189,81 +190,212 @@ public class ObjectCtrl : MonoBehaviour
 								MainPic.enabled = true;
 							}
 
-							if (inp.vector.x == -param[1])   // サイド変更入力
+							bool side_change = false;
+							if (inp.vector.x <= -0.4f)
 							{
-							}
-							else
-							{ 
-								if (++param[2] < 3)			// 回数制限に引っ掛かるまでサイド変更可能
+								if (this.transform.localPosition.x > 0)
 								{
-									param[1] = -param[1];
+									side_change = true;
+								}
+							}
+							else if (inp.vector.x >= 0.4f)
+							{
+								if (this.transform.localPosition.x < 0)
+								{
+									side_change = true;
+								}
+							}
+							if (side_change == true)
+							{
+								if (++param[2] < MANAGE.CNT_CHANGE_SIDE)    // 回数制限に引っ掛かるまでサイド変更可能
+								{
+									param[1] = 0 - param[1];
 									count = 0;
 									param[0] = 0;
-									this.transform.localScale = new Vector3(0-this.transform.localScale.x, 1, 1);
+									this.transform.localScale = new Vector3(0 - this.transform.localScale.x, 1, 1);
 									PlayerName.transform.localScale = new Vector3(0 - PlayerName.transform.localScale.x, 1, 1);
 								}
 							}
-							if (param[0] <= 30)
+							if (param[0] <= 60)
 							{
 								Vector3 v = this.transform.localPosition;
-								v.x = param[1] * ((float)param[0] / 30.0f) * 250f;
+								v.x = param[1] * ((float)param[0] / 60.0f) * 250f;
+								vect.x = v.x;
 								//Debug.Log("Vector3.x=" + v.x + " / param[0]/30.0f=" + ((float)param[0] / 30.0f));
 								this.transform.localPosition = v;
 								Vector3 s = this.transform.localScale;
-								s.x = s.y = 1 + (((float)param[0] / 30.0f) - 1.0f);
+								s.x = (1 + (((float)param[0] / 60.0f) - 1.0f) * 5.0f) * -param[1];
+								s.y = (1 + (((float)param[0] / 60.0f) - 1.0f) * 5.0f);
+								this.transform.localScale = s;
 							}
 
-							if (++param[0] > 60)    // 無敵時間終了
+							if (++param[0] > 120)    // 無敵時間終了
 							{
+								if (this.transform.localPosition.x < 0)
+								{
+									param[2] = 0;   // ここから左右サイドの表示用
+								}
+								else
+								{
+									param[2] = 1;
+								}
 								MainHit.enabled = true;
 								MainPic.enabled = true;
+								MANAGE.CNT_PLAYER_SIDE[param[2]]++;
+								param[3] = -1;
 								mode = 2;
 							}
 						}
 						break;
+					case 2: // 通常時処理
+						{
+							PlayerName.text = mode.ToString();
+						}
+						break;
 					case 10:    // 死亡処理
 						{
+							if (param[0] < 120)
+							{
+								// 死亡演出
+							}
+							else
+							{
+								MANAGE.CNT_PLAYER_SIDE[param[2]]--; // 自分の存在したサイドから消滅
+								count = -1;     // 初期化に戻って復活
+								param[0] = 0;
+								param[2] = 0;
+								param[3] = 0;
+							}
 						}
 						break;
 				}
 
 				vect = new Vector3(0, 0, 0);
-				if (inp.button == true)	// ボタン押された・カウンタ0で弾射出・押しっぱなしで短時間スピードアップ
+				if (inp.button == true)
 				{
-					if (param[3]==-1)
+					if (mode == 2)
 					{
-						param[3]++;
-						if (param[3]==0)
+						if (param[3] == -1)
 						{
-	  // 射撃
-						}
-						if (param[3]>=MANAGE.CNT_TIMER_TURBO)
-						{
-							if(inp.vector.y > 0.4f)
-							{
-								vect.y = MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
-							}
-							else if (inp.vector.y < -0.4f)
-							{
-								vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
-							}
-						}
-						else
-						{
-							if (inp.vector.y > 0.4f)
-							{
-								vect.y = MANAGE.CNT_STEPS_TURBO;       // 射撃時スピードアップ
-							}
-							else if (inp.vector.y < -0.4f)
-							{
-								vect.y = -1 * MANAGE.CNT_STEPS_TURBO;      // 射撃時スピードアップ
-							}
+							MANAGE.Set(ObjectManager.TYPE.MYSHOT, type, this.transform.localPosition, param[2], 0); // 射撃
+							param[3]++;
 						}
 					}
 				}
-				else // ボタン押されてない・通常速度での移動
+				if (param[3] >= 0)
 				{
+					param[3]++;
+				}
+				if (inp.button==true)
+				{
+					if (param[3]<=MANAGE.CNT_TIMER_TURBO)
+					{
+						PlayerName.text = "case 1";
+						if (inp.vector.y > 0.4f)
+						{
+							vect.y = MANAGE.CNT_STEPS_TURBO;    // 押しっぱなしで期限切れたら通常移動
+						}
+						else if (inp.vector.y < -0.4f)
+						{
+							vect.y = -1 * MANAGE.CNT_STEPS_TURBO;    // 押しっぱなしで期限切れたら通常移動
+						}
+					}
+					else
+					{
+						PlayerName.text = "case 2";
+						if (inp.vector.y > 0.4f)
+						{
+							vect.y = MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
+						}
+						else if (inp.vector.y < -0.4f)
+						{
+							vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
+						}
+					}
+				}
+				else
+				{
+					PlayerName.text = "case 3";
+					if (inp.vector.y > 0.4f)
+					{
+						vect.y = MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
+					}
+					else if (inp.vector.y < -0.4f)
+					{
+						vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
+					}
+				}
+				if (param[3] > MANAGE.CNT_TIMER_TURBO)
+				{
+					if (inp.button == false)
+					{
+						param[3] = -1;
+					}
+				}
+#if false
+				if (param[3] <= MANAGE.CNT_TIMER_TURBO)
+				{
+					PlayerName.text = "case 1";
+					if (inp.vector.y > 0.4f)
+					{
+						vect.y = MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
+					}
+					else if (inp.vector.y < -0.4f)
+					{
+						vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
+					}
+				}
+				else if (inp.button == true)
+				{
+					PlayerName.text = "case 2";
+					if (param[3] >= MANAGE.CNT_TIMER_TURBO)
+					{
+						if (inp.vector.y > 0.4f)
+						{
+							vect.y = MANAGE.CNT_STEPS_TURBO;    // 押しっぱなしで期限切れたら通常移動
+						}
+						else if (inp.vector.y < -0.4f)
+						{
+							vect.y = -1 * MANAGE.CNT_STEPS_TURBO;    // 押しっぱなしで期限切れたら通常移動
+						}
+					}
+
+					else
+					{
+						PlayerName.text = "case 3";
+						if (inp.vector.y > 0.4f)
+						{
+							vect.y = MANAGE.CNT_STEPS_NORMAL;       // 射撃時スピードアップ
+						}
+						else if (inp.vector.y < -0.4f)
+						{
+							vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;      // 射撃時スピードアップ
+						}
+					}
+
+				}
+				else
+				{
+					PlayerName.text = "case 4";
 					param[3] = -1;
+					if (inp.vector.y > 0.4f)
+					{
+						vect.y = MANAGE.CNT_STEPS_NORMAL;       // 射撃時スピードアップ
+					}
+					else if (inp.vector.y < -0.4f)
+					{
+						vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;      // 射撃時スピードアップ
+					}
+				}
+#endif
+#if false
+				//else // ボタン押されてない・通常速度での移動
+				{
+					param[3]++;
+					if (param[3] >= MANAGE.CNT_TIMER_TURBO)
+					{
+						param[3] = -1;
+					}
 					if (inp.vector.y > 0.4f)
 					{
 						vect.y = MANAGE.CNT_STEPS_NORMAL;    // 通常移動
@@ -273,17 +405,18 @@ public class ObjectCtrl : MonoBehaviour
 						vect.y = -1 * MANAGE.CNT_STEPS_NORMAL;    // 通常移動
 					}
 				}
+#endif
 				this.transform.localPosition += vect;
-				if (this.transform.localPosition.y > 250)	// 移動制限
+				if (this.transform.localPosition.y > 220)	// 移動制限
 				{
 					Vector3 v = this.transform.localPosition;
-					v.y = 250;
+					v.y = 220;
 					this.transform.localPosition = v;
 				}
-				else if (this.transform.localPosition.y < -250)
+				else if (this.transform.localPosition.y < -220)
 				{
 					Vector3 v = this.transform.localPosition;
-					v.y = -250;
+					v.y = -220;
 					this.transform.localPosition = v;
 				}
 				break;
@@ -291,7 +424,7 @@ public class ObjectCtrl : MonoBehaviour
 
 
 			/*
-			 自機ショット
+			 ビーム
 
 
 
@@ -314,13 +447,13 @@ public class ObjectCtrl : MonoBehaviour
 					param[0] = 6;
 				}
 				// 実移動及び表示処理
-				pos = this.transform.localPosition;
-				pos += MANAGE.AngleToVector3(angle, WATER_MOVE_SPEED);
-				this.transform.localPosition = pos;
-				this.transform.localEulerAngles = new Vector3(0, 0, MANAGE.AngleToRotation(angle));
-				if (count >= param[0])
+				//pos = this.transform.localPosition;
+				//pos += MANAGE.AngleToVector3(angle, WATER_MOVE_SPEED);
+				//this.transform.localPosition = pos;
+				//this.transform.localEulerAngles = new Vector3(0, 0, MANAGE.AngleToRotation(angle));
+				//if (count >= param[0])
 				{
-					MANAGE.Return(this);
+					//MANAGE.Return(this);
 				}
 				break;
 

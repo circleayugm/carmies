@@ -505,6 +505,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f3824b14814d4b447af3fe626149261b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  MSG_TIME: {fileID: 686313043}
+  MSG_MULTIPLIER:
+  - {fileID: 1787761626}
+  - {fileID: 1688935546}
   count: 0
   sw_game_end: 0
   sw_game_clear: 0
