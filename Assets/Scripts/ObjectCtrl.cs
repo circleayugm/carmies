@@ -277,7 +277,7 @@ public class ObjectCtrl : MonoBehaviour
 					{
 						if (param[3] == -1)
 						{
-							MANAGE.Set(ObjectManager.TYPE.MYSHOT, type, this.transform.localPosition, param[2], 0); // 射撃
+							MANAGE.Set(ObjectManager.TYPE.MYSHOT, param[2], this.transform.localPosition, param[2], 0); // 射撃
 							param[3]++;
 						}
 					}
@@ -444,7 +444,80 @@ public class ObjectCtrl : MonoBehaviour
 					MainPic.sprite = MANAGE.SPR_MYSHOT[0];
 					GraphPic.enabled = false;
 					this.transform.localScale = new Vector3(1, 1, 1);
-					param[0] = 6;
+					param[0] = 10;
+					if(mode==0)
+					{
+						this.transform.localEulerAngles = new Vector3(0, 0, 90);
+						this.transform.localPosition = new Vector3(-200, this.transform.localPosition.y, 0);
+					}
+					else
+					{
+						this.transform.localEulerAngles = new Vector3(0, 0, -90);
+						this.transform.localPosition = new Vector3(200, this.transform.localPosition.y, 0);
+					}
+				}
+				switch(count)
+				{
+					case 0:
+						break;
+					case 1:
+						if (mode == 0)
+						{
+							this.transform.localPosition = new Vector3(-174, this.transform.localPosition.y, 0);
+						}
+						else
+						{
+							this.transform.localPosition = new Vector3(174, this.transform.localPosition.y, 0);
+						}
+						this.transform.localScale = new Vector3(1, 2, 1);
+						break;
+					case 2:
+						if (mode == 0)
+						{
+							this.transform.localPosition = new Vector3(-138, this.transform.localPosition.y, 0);
+						}
+						else
+						{
+							this.transform.localPosition = new Vector3(138, this.transform.localPosition.y, 0);
+						}
+						this.transform.localScale = new Vector3(1, 3, 1);
+						break;
+					case 3:
+						if (mode == 0)
+						{
+							this.transform.localPosition = new Vector3(-104, this.transform.localPosition.y, 0);
+						}
+						else
+						{
+							this.transform.localPosition = new Vector3(104, this.transform.localPosition.y, 0);
+						}
+						this.transform.localScale = new Vector3(1, 4, 1);
+						break;
+					case 4:
+						if (mode == 0)
+						{
+							this.transform.localPosition = new Vector3(-80, this.transform.localPosition.y, 0);
+						}
+						else
+						{
+							this.transform.localPosition = new Vector3(80, this.transform.localPosition.y, 0);
+						}
+						this.transform.localScale = new Vector3(1, 5, 1);
+						break;
+					case 5:
+						if (mode == 0)
+						{
+							this.transform.localPosition = new Vector3(-50, this.transform.localPosition.y, 0);
+						}
+						else
+						{
+							this.transform.localPosition = new Vector3(50, this.transform.localPosition.y, 0);
+						}
+						this.transform.localScale = new Vector3(1, 6, 1);
+						break;
+					case 10:
+						MANAGE.Return(this);
+						break;
 				}
 				// 実移動及び表示処理
 				//pos = this.transform.localPosition;

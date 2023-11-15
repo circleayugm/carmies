@@ -85,24 +85,26 @@ public sealed class ObjectManager : MonoBehaviour {
 
 
 	// carmiesここから
-	public readonly int CNT_TIMER_START = 60 * 60 * 3;  // 制限時間初期値
+	public readonly int CNT_TIMER_START = 60 * 60 * 1;  // 制限時間初期値
 
 	public readonly int SCORE_PLAYER_MULTIPLIER = 100;	// 他プレイヤーを倒した時の倍率
 	public readonly float[] SCORE_MULTIPLIER_DISP = new float[8] { 1, 100, 30, 10, 1, 0.5f, 0.25f, 0.25f };  // 自分サイドのプレイヤー数に応じた得点倍率
 																											 // 少なければ少ないほど高い
 
-	public readonly int[] SCORE_MULTIPLIER = new int[8] { 10, 1000, 300, 100, 10, 5, 3, 3 };				// 自分サイドのスコア・実加算用																										public readonly int CNT_TIMER_SHUFFLE = 60;			// 相手サイドのプレイヤーが0になってから強制組分けが発生するまでの時間
+	public readonly int[] SCORE_MULTIPLIER = new int[8] { 10, 1000, 300, 100, 10, 5, 3, 3 };                // 自分サイドのスコア・実加算用																										public readonly int CNT_TIMER_SHUFFLE = 60;			// 相手サイドのプレイヤーが0になってから強制組分けが発生するまでの時間
+	public readonly int[] SCORE_MULTIPLIER_VS_PLAYER = new int[8] { 1000, 100000, 30000, 10000, 1000, 500, 250, 250 };
+																											// 逆サイドのプレイヤーを撃ち倒した場合
 	public readonly int CNT_CHANGE_SIDE = 4;			// 自力でサイドを変更できる回数
 
 	public readonly int CNT_STEPS_NORMAL = 4;			// プレイヤーの1intの移動距離(通常時)
 	public readonly int CNT_STEPS_TURBO = 16;			//							(ターボ時)
-	public readonly int CNT_TIMER_TURBO = 60;			// プレイヤーがターボで動ける時間
+	public readonly int CNT_TIMER_TURBO = 20;			// プレイヤーがターボで動ける時間
 
 
 
 	public int[] CNT_PLAYER_SIDE = new int[2] { 0, 0 }; // 左・右のプレイヤー数
 	public int[] SCORE_PLAYER = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };	// 各プレイヤーのスコア
-	public int CNT_TIMER = 60 * 60 * 3;                 // 制限時間
+	public int CNT_TIMER = 60 * 60 * 1;                 // 制限時間
 
 
 
