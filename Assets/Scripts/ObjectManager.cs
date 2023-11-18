@@ -87,13 +87,14 @@ public sealed class ObjectManager : MonoBehaviour {
 	// carmiesここから
 	public readonly int CNT_TIMER_START = 60 * 60 * 1;  // 制限時間初期値
 
-	public readonly int SCORE_PLAYER_MULTIPLIER = 100;	// 他プレイヤーを倒した時の倍率
-	public readonly float[] SCORE_MULTIPLIER_DISP = new float[8] { 1, 100, 30, 10, 1, 0.5f, 0.25f, 0.25f };  // 自分サイドのプレイヤー数に応じた得点倍率
-																											 // 少なければ少ないほど高い
+	public readonly int SCORE_PLAYER_MULTIPLIER = 100;  // 他プレイヤーを倒した時の倍率
+	public readonly float[] SCORE_MULTIPLIER_DISP = new float[9] { 1, 100, 30, 10, 1, 0.5f, 0.25f, 0.25f, 1 };
+																									// 自分サイドのプレイヤー数に応じた得点倍率
+																									// 少なければ少ないほど高い
 
-	public readonly int[] SCORE_MULTIPLIER = new int[8] { 10, 1000, 300, 100, 10, 5, 3, 3 };                // 自分サイドのスコア・実加算用																										public readonly int CNT_TIMER_SHUFFLE = 60;			// 相手サイドのプレイヤーが0になってから強制組分けが発生するまでの時間
-	public readonly int[] SCORE_MULTIPLIER_VS_PLAYER = new int[8] { 1000, 100000, 30000, 10000, 1000, 500, 250, 250 };
-																											// 逆サイドのプレイヤーを撃ち倒した場合
+	public readonly int[] SCORE_MULTIPLIER = new int[9] { 10, 1000, 300, 100, 10, 5, 3, 3,10 };		// 自分サイドのスコア・実加算用																										public readonly int CNT_TIMER_SHUFFLE = 60;			// 相手サイドのプレイヤーが0になってから強制組分けが発生するまでの時間
+	public readonly int[] SCORE_MULTIPLIER_VS_PLAYER = new int[9] { 1000, 100000, 30000, 10000, 1000, 500, 250, 250 ,1000};
+																									// 逆サイドのプレイヤーを撃ち倒した場合
 	public readonly int CNT_CHANGE_SIDE = 4;			// 自力でサイドを変更できる回数
 
 	public readonly int CNT_STEPS_NORMAL = 4;			// プレイヤーの1intの移動距離(通常時)
@@ -103,8 +104,9 @@ public sealed class ObjectManager : MonoBehaviour {
 
 
 	public int[] CNT_PLAYER_SIDE = new int[2] { 0, 0 }; // 左・右のプレイヤー数
-	public int[] SCORE_PLAYER = new int[8] { 0, 0, 0, 0, 0, 0, 0, 0 };	// 各プレイヤーのスコア
+	public int[] SCORE_PLAYER = new int[9] { 0, 0, 0, 0, 0, 0, 0, 0 , 0};	// 各プレイヤーのスコア
 	public int CNT_TIMER = 60 * 60 * 1;                 // 制限時間
+	public int CNT_TIMER_SHUFFLE = 5 * 60;				// 片側に人が集まってしまった場合のシャッフルカウンタ
 
 
 
@@ -283,9 +285,9 @@ public sealed class ObjectManager : MonoBehaviour {
 		for (int i = 0; i < objectUsed.Count; i++)
 		{
 			{
-				if (obj.obj_type == TYPE.FIRE)
+				if (obj.obj_type == TYPE.DEBRIS)
 				{
-					if (objectUsed[i].obj_type == TYPE.FIRE)
+					if (objectUsed[i].obj_type == TYPE.DEBRIS)
 					{
 						continue;
 					}
@@ -322,6 +324,67 @@ public sealed class ObjectManager : MonoBehaviour {
 #endif
 					else if (objectUsed[i].obj_type == TYPE.MYSHOT)
 					{
+						if (Mathf.Abs(objectUsed[i].transform.localPosition.y - obj.transform.localPosition.y) < 15)
+						{
+							switch (objectUsed[i].count)
+							{
+								case 2:
+									{
+										switch(obj.mode)
+										{
+											case 0:
+												if (obj.transform.localPosition.x <= -70)
+												{
+													obj.LIFE = 0;
+													objectUsed[i].LIFE = 0;
+												}
+												break;
+											case 1:
+												if (obj.transform.localPosition.x >= 70)
+												{
+													obj.LIFE = 0;
+													objectUsed[i].LIFE = 0;
+												}
+												break;
+										}
+									}
+									break;
+								case 3:
+									{
+										switch (obj.mode)
+										{
+											case 0:
+												if (obj.transform.localPosition.x <= 25)
+												{
+													obj.LIFE = 0;
+													objectUsed[i].LIFE = 0;
+												}
+												break;
+											case 1:
+												if (obj.transform.localPosition.x >= -25)
+												{
+													obj.LIFE = 0;
+													objectUsed[i].LIFE = 0;
+												}
+												break;
+										}
+									}
+									break;
+								case 4:
+								case 5:
+								case 6:
+								case 7:
+								case 8:
+								case 9:
+								case 10:
+									{
+										obj.LIFE = 0;
+										objectUsed[i].LIFE = 0;
+									}
+									break;
+							}
+						}
+#if false
 						float xx = objectUsed[i].transform.localPosition.x - obj.transform.localPosition.x;
 						float yy = objectUsed[i].transform.localPosition.y - obj.transform.localPosition.y;
 						float check1 = (xx * xx) + (yy * yy);
@@ -338,10 +401,27 @@ public sealed class ObjectManager : MonoBehaviour {
 								obj.Damage(10);
 							}
 						}
+#endif
 					}
 				}
 				else if (obj.obj_type == TYPE.MYSHIP)
 				{
+					if (objectUsed[i].obj_type==TYPE.MYSHOT)
+					{
+						if (Mathf.Abs(objectUsed[i].transform.localPosition.y - obj.transform.localPosition.y) < 15)	// ビームとプレイヤーがほぼ同じY座標に存在
+						{
+							if (objectUsed[i].mode != obj.param[2])	// 同じサイドに存在しない
+							{
+								if (objectUsed[i].count >= 5)		// ビーム出現フレーム数が逆サイドに届いている
+								{
+									obj.mode = 10;						// 逆サイドのプレイヤー死亡
+									obj.LIFE = 0;
+									objectUsed[i].LIFE = 0;				// ビーム死亡
+								}
+							}
+						}
+					}
+#if false
 					if (objectUsed[i].obj_type == TYPE.WALL)
 					{
 						float xx = objectUsed[i].transform.localPosition.x - obj.transform.localPosition.x;
@@ -384,28 +464,6 @@ public sealed class ObjectManager : MonoBehaviour {
 
 						}
 					}
-#if false
-					else if (objectUsed[i].obj_type == TYPE.WATERPOOL)
-					{
-						float xx = objectUsed[i].transform.localPosition.x - obj.transform.localPosition.x;
-						float yy = objectUsed[i].transform.localPosition.y - obj.transform.localPosition.y;
-						float check1 = (xx * xx) + (yy * yy);
-						float check2 = (objectUsed[i].MainHit.radius * objectUsed[i].transform.localScale.x) + (obj.MainHit.radius * obj.transform.localScale.x);
-						if (check1 <= (check2 * check2))
-						{
-							CNT_WATER += 6;
-							if (CNT_WATER > WATER_MAX)
-							{
-								CNT_WATER = WATER_MAX;
-							}
-							objectUsed[i].param[0]--;
-							if (objectUsed[i].param[0] < 1)
-							{
-								objectUsed[i].param[0] = 1;
-							}
-						}
-					}
-#endif
 					else if (objectUsed[i].obj_type == TYPE.FIRE)
 					{
 						float xx = objectUsed[i].transform.localPosition.x - obj.transform.localPosition.x;
@@ -421,6 +479,7 @@ public sealed class ObjectManager : MonoBehaviour {
 							}
 						}
 					}
+#endif
 				}
 			}
 		}

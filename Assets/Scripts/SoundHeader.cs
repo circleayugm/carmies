@@ -31,10 +31,11 @@ public class SoundHeader
 	//SE列挙.
 	public enum SE
 	{
-		SHOOT=0,
-		DESTROY_FIRE1,
-		DESTROY_FIRE2,
-		CREATE_FIRE,
+		SYNTH=0,
+		BEAM,
+		BANG1,
+		BANG2,
+
 		Count
 	}
 		

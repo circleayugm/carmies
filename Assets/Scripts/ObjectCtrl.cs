@@ -142,13 +142,15 @@ public class ObjectCtrl : MonoBehaviour
 				{
 					return;
 				}
-				ReplayInput inp = REPLAY.GetControl(type);  // 入力を受け取る
-				if (type == 2)
-					Debug.Log("ObjectCtrl:Update:MAIN.count=" + MAIN.count + " / controller=" + type + " / inp=" + inp.vector + ":" + inp.button);
+				ReplayInput inp = REPLAY.GetControl(type);  // 入力を受け取る・1～8
+				//if (type == 2)
+				//	Debug.Log("ObjectCtrl:Update:MAIN.count=" + MAIN.count + " / controller=" + type + " / inp=" + inp.vector + ":" + inp.button);
 				switch (mode)   // 自機の状態に応じて移動・攻撃を行う
 				{
 					case 0: // 初期化
 						{
+							this.transform.localEulerAngles = new Vector3(0, 0, 0);
+							this.transform.localScale = new Vector3(1, 1, 1);
 							obj_mode = ObjectManager.MODE.HIT;
 							MainHit.enabled = false;                // 出現直後無敵
 							MainHit.radius = HITSIZE_MYSHIP;
@@ -249,7 +251,12 @@ public class ObjectCtrl : MonoBehaviour
 						break;
 					case 2: // 通常時処理
 						{
-							PlayerName.text = mode.ToString();
+							if (LIFE <= 0)	// プレイヤーやられ
+							{
+								mode = 10;
+								param[0] = 0;
+								MainHit.enabled = false;
+							}
 						}
 						break;
 					case 10:    // 死亡処理
@@ -257,14 +264,25 @@ public class ObjectCtrl : MonoBehaviour
 							if (param[0] < 120)
 							{
 								// 死亡演出
+								this.transform.localEulerAngles += new Vector3(0, 0, 35);   // ぶっとび回転
+								this.transform.localScale += new Vector3(0.05f, 0.05f, 0);
+								param[0]++;
+							}
+							else if (param[0] < 180)
+							{
+								this.transform.localEulerAngles += new Vector3(0, 0, 2);   // ぶっとび回転・溜めてゆっくり
+								this.transform.localScale += new Vector3(0.05f, 0.05f, 0);
+								param[0]++;
 							}
 							else
 							{
 								MANAGE.CNT_PLAYER_SIDE[param[2]]--; // 自分の存在したサイドから消滅
 								count = -1;     // 初期化に戻って復活
 								param[0] = 0;
+								param[1] = 0;
 								param[2] = 0;
 								param[3] = 0;
+								mode = 0;
 							}
 						}
 						break;
@@ -290,7 +308,6 @@ public class ObjectCtrl : MonoBehaviour
 				{
 					if (param[3]<=MANAGE.CNT_TIMER_TURBO)
 					{
-						PlayerName.text = "case 1";
 						if (inp.vector.y > 0.4f)
 						{
 							vect.y = MANAGE.CNT_STEPS_TURBO;    // 押しっぱなしで期限切れたら通常移動
@@ -302,7 +319,6 @@ public class ObjectCtrl : MonoBehaviour
 					}
 					else
 					{
-						PlayerName.text = "case 2";
 						if (inp.vector.y > 0.4f)
 						{
 							vect.y = MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
@@ -315,7 +331,6 @@ public class ObjectCtrl : MonoBehaviour
 				}
 				else
 				{
-					PlayerName.text = "case 3";
 					if (inp.vector.y > 0.4f)
 					{
 						vect.y = MANAGE.CNT_STEPS_NORMAL;    // 押しっぱなしで期限切れたら通常移動
@@ -456,6 +471,10 @@ public class ObjectCtrl : MonoBehaviour
 						this.transform.localPosition = new Vector3(200, this.transform.localPosition.y, 0);
 					}
 				}
+				if (LIFE==0)
+				{
+					MANAGE.Return(this);	// ビーム削除
+				}
 				switch(count)
 				{
 					case 0:
@@ -582,6 +601,14 @@ public class ObjectCtrl : MonoBehaviour
 					|| (this.transform.localPosition.y <= -350)
 					)
 				{
+					MANAGE.Return(this);
+				}
+				if (LIFE == 0)
+				{
+					for(int i=0;i<4;i++)
+					{
+						MANAGE.Set(ObjectManager.TYPE.NOHIT_EFFECT, 1, this.transform.localPosition, REPLAY.RandomRange(0, 256), REPLAY.RandomRange(2, 5));
+					}
 					MANAGE.Return(this);
 				}
 				break;
@@ -765,6 +792,7 @@ public class ObjectCtrl : MonoBehaviour
 					vect = MANAGE.AngleToVector3(angle, speed * 0.05f);
 					MainPic.sprite = MANAGE.SPR_CRUSH[0];
 					MainPic.sortingOrder = 5;
+					vect = MANAGE.AngleToVector3(angle, speed);
 				}
 				else if (count >= 16)
 				{
